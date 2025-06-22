@@ -1,112 +1,106 @@
-#KUMANDA PROJESİ
-
+import tkinter as tk
+from tkinter import messagebox
 import random
 import time
 
-class TvRemote():
-    def __init__(self, tv_state="Off", tv_voice=0, channel_list=["Fox"], channel="Fox"):
-        self.tv_state=tv_state
-        self.tv_voice=tv_voice
-        self.channel_list=channel_list 
-        self.channel=channel
-        
+class TvRemote:
+    def __init__(self):
+        self.tv_state = "Off"
+        self.tv_voice = 0
+        self.channel_list = ["Fox"]
+        self.channel = "Fox"
+
     def tv_open(self):
-        if (self.tv_state=="On"):
-            print("TV is on.")
-        else:
-            print("TV is turning on...")  
-            self.tv_state="On"  
-            
+        if self.tv_state == "On":
+            return "TV is already ON."
+        self.tv_state = "On"
+        return "TV turned ON."
+
     def tv_close(self):
-        if(self.tv_state=="Off"):
-            print("TV is off.")
-        else:
-            print("TV is turning off...")
-            self.tv_state="Off"
-            
-    def voice_control(self):
-        while True:
-            answer=input("To increase the voice: '>' \n To turn down the voice: '<' \n Exit: \n :")  
-            if(answer=='<'):
-                if(answer!=0):
-                    self.tv_voice-=1
-                    print("Ses: ", self.tv_voice)
-                
-            elif(answer=='>'):
-                 if(answer!=50):
-                    self.tv_voice+=1
-                    print("Ses: ", self.tv_voice)
-            else:
-                 print("voice has been updated...")
-                 break
-                
+        if self.tv_state == "Off":
+            return "TV is already OFF."
+        self.tv_state = "Off"
+        return "TV turned OFF."
+
+    def voice_up(self):
+        if self.tv_voice < 50:
+            self.tv_voice += 1
+        return f"Volume: {self.tv_voice}"
+
+    def voice_down(self):
+        if self.tv_voice > 0:
+            self.tv_voice -= 1
+        return f"Volume: {self.tv_voice}"
+
     def add_channel(self, channel_name):
-        print("Adding the channel...")
-        time.sleep(3)
-        
-        self.channel_list.append(channel_name)
-        print("Channel has been added...")
-        
+        if channel_name:
+            self.channel_list.append(channel_name)
+            return f"Channel '{channel_name}' added."
+        return "No channel name entered."
+
     def random_channel(self):
-        random= random.randint(0, len(self.channel_list)-1)
-        self.channel=self.channel_list[random]
-        print("Random channel is updading...")
-        time.sleep(3)
-        print("current channel: ", self.channel)
-    
-    def __len__(self):
-        return len(self.channel_list)   
-    
-    def __str__(self):
-        return "TV State: {}\n Voice: {}\n Channel List:{}\n Current Channel: {}".format(self.tv_state, self.tv_voice, self.channel_list, self.channel) 
+        if self.channel_list:
+            self.channel = random.choice(self.channel_list)
+            return f"Switched to: {self.channel}"
+        return "No channels available."
 
+    def get_info(self):
+        return f"""TV State: {self.tv_state}
+Volume: {self.tv_voice}
+Channels: {', '.join(self.channel_list)}
+Current Channel: {self.channel}"""
 
+# ----------------- GUI ------------------
+remote = TvRemote()
 
-remote= TvRemote()                       
-print("""
-    ******TV APP******
-    1-Turn ON 
-    2-Turn Off
-    3-Voice Control
-    4- Add Channel
-    5-The Number Of Channels
-    6-Random Channel Selection
-    7-Information
-   To Exit type 'S' !!
-       """)                     
-while True: 
-    
-    choice=input("Enter your choice:")
-    
-    if(choice=='S'):
-        print("exit...")
-        time.sleep(2)
-        print("thank you!...")
-        break
-    
-    elif(choice=="1"):
-            remote.tv_open()
-            
-    elif(choice=="2"):
-        remote.tv_close()
-        
-    elif(choice=="3"):
-        remote.voice_control()
-        
-    elif(choice=="4"):
-        channel_name=input("Separate the channel names with ',' :")
-        channel_list=channel_name.split(",")
-        for eklenecekler in channel_list:
-           remote.add_channel(eklenecekler)
-        
-    elif(choice=="5"):
-        print("number of channels: ", len(remote))
-        
-    elif(choice=="6"):
-        remote.random_channel()
-        
-    elif(choice=="7"):
-       print(remote) 
-    
-    else:
-        print("Incorrect input... Try again.")
+root = tk.Tk()
+root.title("TV Remote GUI")
+root.geometry("400x400")
+root.config(bg="lightgray")
+
+# Display box
+info_text = tk.StringVar()
+info_text.set(remote.get_info())
+label = tk.Label(root, textvariable=info_text, justify="left", bg="white", relief="solid", padx=10, pady=10)
+label.pack(pady=10, fill="x")
+
+def update_info(msg=""):
+    info_text.set(remote.get_info())
+    if msg:
+        messagebox.showinfo("Update", msg)
+
+# Buttons
+frame = tk.Frame(root, bg="lightgray")
+frame.pack(pady=10)
+
+btn_on = tk.Button(frame, text="TV ON", command=lambda: update_info(remote.tv_open()), width=12)
+btn_on.grid(row=0, column=0, padx=5, pady=5)
+
+btn_off = tk.Button(frame, text="TV OFF", command=lambda: update_info(remote.tv_close()), width=12)
+btn_off.grid(row=0, column=1, padx=5, pady=5)
+
+btn_up = tk.Button(frame, text="Volume +", command=lambda: update_info(remote.voice_up()), width=12)
+btn_up.grid(row=1, column=0, padx=5, pady=5)
+
+btn_down = tk.Button(frame, text="Volume -", command=lambda: update_info(remote.voice_down()), width=12)
+btn_down.grid(row=1, column=1, padx=5, pady=5)
+
+btn_random = tk.Button(frame, text="Random Channel", command=lambda: update_info(remote.random_channel()), width=26)
+btn_random.grid(row=2, columnspan=2, padx=5, pady=5)
+
+channel_entry = tk.Entry(root, width=30)
+channel_entry.pack(pady=5)
+channel_entry.insert(0, "Enter channel name")
+
+def add_channel():
+    channel = channel_entry.get().strip()
+    msg = remote.add_channel(channel)
+    update_info(msg)
+
+btn_add_channel = tk.Button(root, text="Add Channel", command=add_channel, width=30)
+btn_add_channel.pack(pady=5)
+
+btn_info = tk.Button(root, text="Refresh Info", command=lambda: update_info(), width=30)
+btn_info.pack(pady=5)
+
+root.mainloop()
